@@ -1,0 +1,131 @@
+"""
+    Imports: convert.py  (Custom parquet-to-csv convertor)
+    Dependancies: json
+    
+    Procedure:
+        Choose whether to convert file 
+        Enter name of students csv file
+        Enter name of teachers csv file
+        Enter name of output json file
+        Data is processed and stored in output json file
+        
+"""
+
+from convert import convert
+import json
+
+# Function to parse teacher data to select certain teacher for student
+def get_teacher_data(id,data):
+    for x in data:
+        if x[-1] == id:
+            res = {}
+            res["ID"] = x[0]
+            res["First Name"] = x[1]
+            res["Last Name"] = x[2]
+            res["Email"] = x[3]
+            res["SSN"] = x[4]
+            res["Address"] = x[5]
+            return res
+    
+    return 0 # Not Found
+            
+# Function get students data from file
+def student_file(name):
+    try:
+        with open(f"{name}", "r") as file:
+            students = file.read().strip().split("\n")[1:]
+            students = [x.split("_") for x in students]
+            return students
+    except Exception as e:
+        print(e)
+        return 0
+   # Function to get teachers data from file
+def teacher_file(name):
+    try:
+        with open(f"{name}", "r") as file:
+            teachers = file.read().split("\n")[1:]
+            teachers = [x.split(",") for x in teachers]
+            return teachers
+    except Exception as e:
+        print(e)
+        return 0
+    # Function to process student and techers data into json
+def process_data(students,teachers):
+    output = {}
+    try:
+        for x in students:
+            data = {}
+            data["First Name"] = x[1]
+            data["Last Name"] = x[2]
+            data["Email"] = x[3]
+            data["SSN"] = x[4]
+            data["Address"] = x[5]
+            data["CID"] = x[6]
+            data["Teacher"] = get_teacher_data(x[6], teachers)
+            output[x[0]] = data
+        return output
+    except Exception as e:
+        print(e)
+        print("Data not complete")
+        return 0
+
+# Function to output json data to file
+def save_data(name,output):
+    try:
+        with open(f"{name}", "w") as file:
+            str_out = json.dumps(output)
+            file.write(str_out)
+            return 1 # Success
+    except Exception as e:
+        print(e)
+        return 0 # Error
+    
+if __name__ == "__main__":
+    
+    choice = input("Enter Y to convert parquet file or enter any key to continue: ")
+    
+    if choice.lower() == 'y':
+        convert()
+    
+    s = input("Enter name of students csv file: ")
+    if not s.endswith(".csv"):
+        s += ".csv"
+    students = student_file(s)
+    
+    t = input("Enter name of teachers csv file: ")
+    if not t.endswith(".csv"):
+        t += ".csv"
+    teachers = teacher_file(t)
+
+    output = process_data(students,teachers)
+    
+    o = input("Enter name of output json file: ")
+    if not s.endswith(".json"):
+        o += ".json"
+    save_data(o,output)
+
+# This code will ask you if there is a parquet file if Y 
+# Then type the pathway to it
+# if no type the csv file
+# after type the name you want to give the output file
+# then type the student csv file pathway
+# Then type the teachers csv file pathway that was created by the first step
+# then enter the desired json file name
+
+import json
+
+# Opening JSON file
+with open('Student-Teacher.json','r') as S:
+    data = json.load(S)
+data
+
+#Containerize using docker
+from flask import Flask
+server = Flask(__main__)
+
+@server.route("/")
+def hello():
+    return "Hello World!"
+
+if __name__ == "__main__":
+    server.run(host='0.0.0.0')
